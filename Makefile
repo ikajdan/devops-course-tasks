@@ -1,6 +1,6 @@
-.PHONY: all init plan apply destroy format validate
+.PHONY: all init plan apply destroy format-check validate
 
-all: format validate init plan
+all: format-check validate init plan
 
 init:
 	@echo "Initializing Terraform…"
@@ -19,6 +19,10 @@ destroy:
 	terraform destroy -auto-approve
 
 format:
+	@echo "Formatting Terraform files…"
+	terraform fmt -recursive
+
+format-check:
 	@echo "Checking Terraform formatting…"
 	terraform fmt -check -recursive
 
