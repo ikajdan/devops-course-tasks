@@ -1,31 +1,33 @@
-.PHONY: all init plan apply destroy format-check validate
+TERRAFORM=terraform -chdir=infra
 
-all: format-check validate init plan
+.PHONY: all init plan apply destroy format check validate
+
+all: check validate init plan
 
 init:
 	@echo "Initializing Terraform…"
-	terraform init
+	$(TERRAFORM) init
 
 plan:
 	@echo "Planning Terraform changes…"
-	terraform plan
+	$(TERRAFORM) plan
 
 apply:
 	@echo "Applying Terraform changes…"
-	terraform apply -auto-approve
+	$(TERRAFORM) apply -auto-approve
 
 destroy:
 	@echo "Destroying Terraform resources…"
-	terraform destroy -auto-approve
+	$(TERRAFORM) destroy -auto-approve
 
 format:
 	@echo "Formatting Terraform files…"
-	terraform fmt -recursive
+	$(TERRAFORM) fmt -recursive
 
-format-check:
+check:
 	@echo "Checking Terraform formatting…"
-	terraform fmt -check -recursive
+	$(TERRAFORM) fmt -check -recursive
 
 validate:
 	@echo "Validating Terraform configuration…"
-	terraform validate
+	$(TERRAFORM) validate
