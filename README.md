@@ -7,6 +7,7 @@ This repository contains Terraform infrastructure tasks for a DevOps course.
 Run `make` to deploy the infrastructure. The Makefile includes the following targets:
 
 - `format`: Formats Terraform files
+- `check`: Checks formatting of Terraform files
 - `validate`: Validates Terraform files
 - `init`: Initializes Terraform
 - `plan`: Creates an execution plan
