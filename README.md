@@ -1,6 +1,6 @@
 # DevOps Course Tasks
 
-This repository contains Terraform infrastructure tasks for a DevOps course.
+This repository contains infrastructure tasks for a DevOps course.
 
 ## Usage
 
@@ -261,3 +261,156 @@ Then run:
 kubectl get nodes
 kubectl get pods
 ```
+
+## Jenkins Installation and Configuration on Minikube
+
+Deploy Jenkins using Helm on a local Minikube cluster. Verify the setup with a basic "Hello World" freestyle job and configure Jenkins using JCasC.
+
+### Prerequisites
+
+* [Minikube](https://minikube.sigs.k8s.io/docs/start/) installed
+* [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
+* [Helm](https://helm.sh/docs/intro/install/) installed
+
+### 1. Helm and Minikube Setup
+
+#### Install Helm and Kubectl
+
+```bash
+dnf install helm kubectl
+```
+
+#### Start Minikube
+
+```bash
+minikube start
+```
+
+#### Confirm Minikube Profile
+
+```bash
+minikube profile list
+```
+
+Ensure the output shows an active profile with status `OK`.
+
+### 2. Verify Helm Functionality
+
+#### Deploy Nginx via Helm
+
+```bash
+helm install my-release oci://registry-1.docker.io/bitnamicharts/nginx
+```
+
+#### Check Pod Status
+
+```bash
+kubectl get pods
+```
+
+Ensure the Nginx pod shows `STATUS: Running`.
+
+### 3. Enable Persistent Volume Support
+
+#### Enable Required Addons
+
+```bash
+minikube addons enable default-storageclass
+minikube addons enable storage-provisioner
+```
+
+#### Verify Storage Class
+
+```bash
+kubectl get storageclass
+```
+
+Ensure `standard (default)` is listed and uses `k8s.io/minikube-hostpath` as the provisioner.
+
+### 4. Test Nginx Service
+
+#### Port Forward Nginx Service
+
+```bash
+kubectl port-forward svc/my-release-nginx 8080:80
+```
+
+Access [http://localhost:8080](http://localhost:8080) and confirm the Nginx welcome page is displayed.
+
+![nginx](https://github.com/user-attachments/assets/30de3efc-d5d6-48e2-914e-1aac096b3fa4)
+
+### 5. Clean Up Nginx Deployment
+
+```bash
+helm uninstall my-release
+```
+
+### 6. Install Jenkins via Helm
+
+#### Add Helm Repo
+
+```bash
+helm repo add jenkins https://charts.jenkins.io
+helm repo update
+```
+
+#### Create Namespace and Install Jenkins
+
+```bash
+kubectl create namespace jenkins
+helm install jenkins jenkins/jenkins -n jenkins
+```
+
+#### Access Jenkins
+
+```bash
+minikube service jenkins -n jenkins
+```
+
+The Jenkins UI should be accessible on localhost.
+
+![jenking_login](https://github.com/user-attachments/assets/71b2dfef-8e14-45ff-bbe7-1215b196ba67)
+
+#### Get Admin Password
+
+```bash
+kubectl exec --namespace jenkins -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password
+```
+
+#### Configure Persistent Storage
+
+Verify `jenkins-home` PVC is bound:
+
+```bash
+kubectl get pvc -n jenkins
+```
+
+#### Configure Jenkins Authentication/Security
+
+- Change the default admin password
+- Enable CSRF protection
+- Disable anonymous read access
+
+#### JCasC Configuration
+
+Upgrade Jenkins Helm release with the provided `values.yml` file:
+
+```bash
+helm upgrade jenkins jenkins/jenkins -n jenkins -f jenkins/values.yml
+```
+
+#### Run a Test Job
+
+Check the output of the Jenkins job to ensure it completed successfully.
+
+![jenkins_run](https://github.com/user-attachments/assets/696602b4-86c1-4d0e-8362-00e2a9bfc04d)
+
+#### Restart Jenkins Pod
+
+Kubernetes will automatically recreate the pod using existing Helm config and PVC.
+
+```bash
+kubectl delete pod -n jenkins -l app.kubernetes.io/component=jenkins-controller
+```
+
+The pod will restart, and Jenkins will retain its configuration and data.
