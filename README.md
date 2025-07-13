@@ -414,3 +414,69 @@ kubectl delete pod -n jenkins -l app.kubernetes.io/component=jenkins-controller
 ```
 
 The pod will restart, and Jenkins will retain its configuration and data.
+
+## Flask App Deployment with Helm on Minikube
+
+### 1. Start Minikube and Configure Docker
+
+```bash
+minikube start
+eval $(minikube docker-env)
+```
+
+### 2. Build Docker Image
+
+```bash
+cd app
+docker build -t flask-app:latest .
+```
+
+### 3. Create Helm Chart
+
+From the project root:
+
+```bash
+helm create flask-app
+```
+
+Edit `values.yaml` in `flask-app/`:
+
+```yaml
+image:
+  repository: flask-app
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: NodePort
+  port: 80
+
+containerPort: 5000
+```
+
+In `flask-app/templates/deployment.yaml`, ensure this line is set:
+
+```yaml
+containerPort: {{ .Values.containerPort }}
+```
+
+### 4. Deploy with Helm
+
+```bash
+helm install flask-app ./flask-app
+```
+
+### 5. Access the App
+
+```bash
+minikube service flask-app
+```
+
+The browser should open and display `Hello, World!`.
+
+## Cleanup
+
+```bash
+helm uninstall flask-app
+minikube stop
+```
