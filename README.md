@@ -480,3 +480,43 @@ The browser should open and display `Hello, World!`.
 helm uninstall flask-app
 minikube stop
 ```
+
+## CI/CD Pipeline: Flask App on Kubernetes
+
+### **1. Start a Local Docker Registry**
+
+```bash
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+```
+
+### **2. Configure Docker to Use Local Registry**
+
+Ensure the Docker image is tagged with the local registry address before pushing:
+
+```bash
+docker tag flask-app:<tag> localhost:5000/flask-app:<tag>
+docker push localhost:5000/flask-app:<tag>
+```
+
+### **3. Enable Minikube to Pull from Local Registry**
+
+Expose the local registry inside the Minikube environment. Run:
+
+```bash
+minikube start
+```
+
+Then:
+
+```bash
+minikube ssh -- "sudo mkdir -p /etc/docker/certs.d/localhost:5000"
+```
+
+Edit Minikube's Docker daemon configuration to trust the registry (if needed):
+
+```bash
+minikube ssh
+echo '{"insecure-registries":["localhost:5000"]}' | sudo tee /etc/docker/daemon.json
+sudo systemctl restart docker
+exit
+```

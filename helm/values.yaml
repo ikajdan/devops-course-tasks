@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: flask-app
+  repository: localhost:5000/flask-app
   pullPolicy: IfNotPresent
   tag: "latest"
 
